@@ -1,155 +1,189 @@
 package memory_bank;
-import java.io.*;
-import javax.swing.*;
+
+// Java Program to create a text editor using java
 import java.awt.*;
+import javax.swing.*;
+import java.io.*;
 import java.awt.event.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.metal.*;
+import javax.swing.text.*;
+class NotePad extends JFrame implements ActionListener {
+    // Text component
+    JTextArea t;
 
-public class NotePad extends JFrame implements ActionListener, WindowListener {
-    JTextArea jta = new JTextArea();
-    File fileNameContainer;
+    // Frame
+    JFrame f;
 
-    public NotePad() {
-        Font fnt = new Font("Arial", Font.PLAIN,15);
-        Container con = getContentPane();
-        JMenuBar jmb = new JMenuBar();
-        JMenu jmfile = new JMenu("File");
-        JMenu jmedit = new JMenu("Edit");
-        JMenu jmhelp = new JMenu("Help");
+    // Constructor
+    NotePad()
+    {
+        // Create a frame
+        f = new JFrame("editor");
 
-        con.setLayout(new BorderLayout());
-        JScrollPane sbrText = new JScrollPane(jta);
-        sbrText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        sbrText.setVisible(true);
+        try {
+            // Set metal look and feel
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
 
-        jta.setFont(fnt);
-        jta.setLineWrap(true);
-        jta.setWrapStyleWord(true);
+            // Set theme to ocean
+            MetalLookAndFeel.setCurrentTheme(new OceanTheme());
+        }
+        catch (Exception e) {
+        }
 
-        con.add(sbrText);
+        // Text component
+        t = new JTextArea();
 
-        createMenuItem(jmfile, "New");
-        createMenuItem(jmfile, "Open");
-        createMenuItem(jmfile, "Save");
-        jmfile.addSeparator();
-        createMenuItem(jmfile, "Exit");
+        // Create a menubar
+        JMenuBar mb = new JMenuBar();
 
-        createMenuItem(jmedit, "Cut");
-        createMenuItem(jmedit, "Copy");
-        createMenuItem(jmedit, "Paste");
+        // Create amenu for menu
+        JMenu fileMenu = new JMenu("File");
 
-        createMenuItem(jmhelp, "About Notepad");
+        // Create menu items
+        createMenuItem(fileMenu, "New");
+        createMenuItem(fileMenu, "Open");
+        createMenuItem(fileMenu, "Save");
+        createMenuItem(fileMenu, "Print");
 
-        jmb.add(jmfile);
-        jmb.add(jmedit);
-        jmb.add(jmhelp);
+        // Create amenu for menu
+        JMenu editMenu = new JMenu("Edit");
 
-        setJMenuBar(jmb);
+        // Create menu items
+        createMenuItem(editMenu, "Cut");
+        createMenuItem(editMenu, "Copy");
+        createMenuItem(editMenu, "Paste");
 
-        setIconImage(Toolkit.getDefaultToolkit().getImage("notepad.gif"));
-        addWindowListener(this);
-        setSize(500,500);
-        setTitle("Untitled.txt - NotePad");
-        setVisible(true);
+        JMenuItem closeMenu = new JMenuItem("Close");
 
+        JMenu helpMenu = new JMenu("Help");
+
+        createMenuItem(helpMenu, "About");
+
+        closeMenu.addActionListener(this);
+
+        mb.add(fileMenu);
+        mb.add(editMenu);
+        mb.add(closeMenu);
+        mb.add(helpMenu);
+
+        f.setJMenuBar(mb);
+        f.add(t);
+        f.setSize(500, 500);
+        f.show();
     }
 
-    public void createMenuItem(JMenu jm, String txt) {
-        JMenuItem jmi = new JMenuItem(txt);
-        jmi.addActionListener(this);
-        jm.add(jmi);
+    public void createMenuItem(JMenu menu, String txt) {
+        JMenuItem menuItem = new JMenuItem(txt);
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
     }
 
-    public void actionPerfomed(ActionEvent e) {
-        JFileChooser jfc = new JFileChooser();
-        if(e.getActionCommand().equals("New")) {
-            this.setTitle("Untitled.txt-Notepad");
-            jta.setText("");
-            fileNameContainer = null;
-        } else if (e.getActionCommand().equals("Open")) {
-            int ret = jfc.showDialog(null, "Open");
-            if(ret == JFileChooser.APPROVE_OPTION){
-                try{
-                    File fyl = jfc.getSelectedFile();
-                    OpenFile(fyl.getAbsolutePath());
-                    this.setTitle(fyl.getName() + " - Notepad");
-                    fileNameContainer = fyl;
+    // If a button is pressed
+    public void actionPerformed(ActionEvent e)
+    {
+        String s = e.getActionCommand();
 
-                } catch(IOException exception){}
+        if (s.equals("Cut")) {
+            t.cut();
+        }
+        else if (s.equals("Copy")) {
+            t.copy();
+        }
+        else if (s.equals("Paste")) {
+            t.paste();
+        }
+        else if (s.equals("Save")) {
+            // Create an object of JFileChooser class
+            JFileChooser j = new JFileChooser("f:");
 
-            }
-        }else if (e.getActionCommand().equals("Save")) {
-            if(fileNameContainer != null) {
-                jfc.setCurrentDirectory(fileNameContainer);
-                jfc.setSelectedFile(fileNameContainer);
-            } else {
-                jfc.setSelectedFile(new File("Untitled.txt"));
-            }
-            int ret = jfc.showSaveDialog(null);
-            if(ret == JFileChooser.APPROVE_OPTION) {
+            // Invoke the showsSaveDialog function to show the save dialog
+            int r = j.showSaveDialog(null);
+
+            if (r == JFileChooser.APPROVE_OPTION) {
+
+                // Set the label to the path of the selected directory
+                File fi = new File(j.getSelectedFile().getAbsolutePath());
+
                 try {
-                    File fyl = jfc.getSelectedFile();
-                    SaveFile(fyl.getAbsolutePath());
-                    this.setTitle(fyl.getName() + "- Notepad");
-                    fileNameContainer = fyl;
-                } catch (Exception exception) {
+                    // Create a file writer
+                    FileWriter wr = new FileWriter(fi, false);
+
+                    // Create buffered writer to write
+                    BufferedWriter w = new BufferedWriter(wr);
+
+                    // Write
+                    w.write(t.getText());
+
+                    w.flush();
+                    w.close();
+                }
+                catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
                 }
             }
-        } else if (e.getActionCommand().equals("Exit")) {
-            Exiting();
-        }else if (e.getActionCommand().equals("Copy")) {
-            jta.copy();
-        }else if (e.getActionCommand().equals("Cut")) {
-            jta.cut();
-        } else if (e.getActionCommand().equals("Paste")) {
-            jta.paste();
-        } else if (e.getActionCommand().equals("About Notepad")) {
-            JOptionPane.showMessageDialog(this, "Created by : Max Clark", "Notepad", JOptionPane.INFORMATION_MESSAGE);
+            // If the user cancelled the operation
+            else
+                JOptionPane.showMessageDialog(f, "the user cancelled the operation");
+        }
+        else if (s.equals("Print")) {
+            try {
+                // print the file
+                t.print();
+            }
+            catch (Exception evt) {
+                JOptionPane.showMessageDialog(f, evt.getMessage());
+            }
+        }
+        else if (s.equals("Open")) {
+            // Create an object of JFileChooser class
+            JFileChooser j = new JFileChooser("f:");
+
+            // Invoke the showsOpenDialog function to show the save dialog
+            int r = j.showOpenDialog(null);
+
+            // If the user selects a file
+            if (r == JFileChooser.APPROVE_OPTION) {
+                // Set the label to the path of the selected directory
+                File fi = new File(j.getSelectedFile().getAbsolutePath());
+
+                try {
+                    // String
+                    String s1 = "", sl = "";
+
+                    // File reader
+                    FileReader fr = new FileReader(fi);
+
+                    // Buffered reader
+                    BufferedReader br = new BufferedReader(fr);
+
+                    // Initialize sl
+                    sl = br.readLine();
+
+                    // Take the input from the file
+                    while ((s1 = br.readLine()) != null) {
+                        sl = sl + "\n" + s1;
+                    }
+
+                    // Set the text
+                    t.setText(sl);
+                }
+                catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
+                }
+            }
+            // If the user cancelled the operation
+            else
+                JOptionPane.showMessageDialog(f, "the user cancelled the operation");
+        }
+        else if (s.equals("New")) {
+            t.setText("");
+        }
+        else if (s.equals("Close")) {
+            f.setVisible(false);
+        }
+        else if (s.equals("About")) {
+            //Todo
         }
     }
 
-    public void OpenFile(String fname) throws IOException {
-        BufferedReader d = new BufferedReader(new InputStreamReader(new FileInputStream(fname)));
-        String l;
-        jta.setText("");
-        setCursor(new Cursor(Cursor.WAIT_CURSOR));
-        while ((l=d.readLine()) !=null) {
-            jta.setText(jta.getText()  + "\r\n");
-        }
-        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        d.close();
-    }
-
-    public void SaveFile(String fname) throws Exception {
-        setCursor (new Cursor(Cursor.WAIT_CURSOR));
-        DataOutputStream o = new DataOutputStream(new FileOutputStream(fname));
-        o.writeBytes(jta.getText());
-        o.close();
-        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-    }
-
-    public void windowDeactivated(WindowEvent e) {}
-
-    public void windowActivated(WindowEvent e) {}
-
-    public void windowDeiconified(WindowEvent e) {}
-
-    public void windowIconified(WindowEvent e) {}
-
-    public void windowClosed(WindowEvent e) {}
-
-    public void windowClosing(WindowEvent e) {
-        Exiting();
-    }
-
-    public void Exiting() {
-        System.exit(0);
-    }
-
-    public void windowOpened(WindowEvent e) {}
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-    }
 }

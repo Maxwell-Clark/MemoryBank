@@ -5,12 +5,11 @@ package memory_bank;
  */
 import memory_bank.NotePad;
 
-import java.util.*;
+//import java.util.*;
 
 //package memory_bank;
 
 public class App {
-
     public static void main(String[] args) {
         NotePad notepad = new NotePad();
     }
